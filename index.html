@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShipInsure + Gorgias Combined ROI Calculator</title>
+    <style>
+        :root {
+            --si-blue: #6675ff;
+            --si-purple: #764ba2;
+            --si-dark: #1a1a2e;
+            --si-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gorgias: #00b4d8;
+            --gorgias-dark: #0090aa;
+            --bg: #f4f5ff;
+            --card: #ffffff;
+            --border: #e0e3ff;
+            --muted: #888;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--si-dark);
+            line-height: 1.5;
+        }
+
+        /* ── Header ── */
+        .header {
+            background: var(--si-dark);
+            padding: 36px 40px 32px;
+            text-align: center;
+        }
+
+        .brand-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+
+        .brand-pill {
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0.4px;
+            padding: 5px 14px;
+            border-radius: 20px;
+        }
+
+        .brand-si   { background: rgba(102,117,255,0.18); color: #9aa5ff; border: 1px solid rgba(102,117,255,0.35); }
+        .brand-gor  { background: rgba(0,180,216,0.15);   color: #4dd8f0; border: 1px solid rgba(0,180,216,0.3);   }
+        .brand-x    { color: rgba(255,255,255,0.25); font-size: 18px; font-weight: 200; }
+
+        .header h1 {
+            font-size: 30px;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 8px;
+        }
+
+        .header-sub {
+            font-size: 15px;
+            color: rgba(255,255,255,0.55);
+            max-width: 500px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* ── Layout ── */
+        .wrap {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 32px 20px 0;
+        }
+
+        /* ── Inputs card ── */
+        .card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 28px 32px;
+            box-shadow: 0 2px 20px rgba(102,117,255,0.07);
+            margin-bottom: 22px;
+        }
+
+        .card-title {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--si-blue);
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .inputs-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px 28px;
+        }
+
+        .span-2 { grid-column: 1 / -1; }
+
+        .section-head {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.9px;
+            color: var(--si-blue);
+            padding: 6px 0 0;
+        }
+
+        .section-rule {
+            border: none;
+            border-top: 1px dashed #dde0f5;
+            margin: 2px 0;
+        }
+
+        .field { display: flex; flex-direction: column; gap: 5px; }
+
+        .field-label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11.5px;
+            font-weight: 600;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        /* Tooltip */
+        .tip {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #e8eaff;
+            color: var(--si-blue);
+            font-size: 8px;
+            font-weight: 900;
+            cursor: default;
+            flex-shrink: 0;
+            font-style: normal;
+        }
+
+        .tip::after {
+            content: attr(data-tip);
+            position: absolute;
+            bottom: calc(100% + 7px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--si-dark);
+            color: rgba(255,255,255,0.9);
+            font-size: 11px;
+            font-weight: 400;
+            line-height: 1.5;
+            padding: 8px 11px;
+            border-radius: 7px;
+            white-space: normal;
+            width: 230px;
+            z-index: 200;
+            display: none;
+            text-transform: none;
+            letter-spacing: 0;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+            pointer-events: none;
+        }
+
+        .tip::before {
+            content: '';
+            position: absolute;
+            bottom: calc(100% + 3px);
+            left: 50%;
+            transform: translateX(-50%);
+            border: 4px solid transparent;
+            border-top-color: var(--si-dark);
+            display: none;
+            z-index: 201;
+        }
+
+        .tip:hover::after,
+        .tip:hover::before { display: block; }
+
+        /* Input wrappers */
+        .input-wrap {
+            display: flex;
+            align-items: stretch;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            background: white;
+            transition: border-color 0.15s;
+        }
+
+        .input-wrap:focus-within { border-color: var(--si-blue); }
+
+        .input-wrap input {
+            flex: 1;
+            min-width: 0;
+            padding: 9px 12px;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--si-dark);
+            background: transparent;
+            -moz-appearance: textfield;
+        }
+
+        .input-wrap input:focus { outline: none; }
+        .input-wrap input::-webkit-outer-spin-button,
+        .input-wrap input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+        .adorn {
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #999;
+            background: #f7f8ff;
+            white-space: nowrap;
+            user-select: none;
+        }
+
+        .adorn-left  { border-right: 1px solid var(--border); }
+        .adorn-right { border-left:  1px solid var(--border); }
+
+        /* Calc button */
+        .calc-btn {
+            display: block;
+            width: 100%;
+            margin-top: 22px;
+            padding: 15px;
+            background: var(--si-gradient);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 0.3px;
+            transition: opacity 0.15s, transform 0.1s;
+        }
+
+        .calc-btn:hover  { opacity: 0.9; transform: translateY(-1px); }
+        .calc-btn:active { transform: none; }
+
+        /* ── Results ── */
+        #results { display: none; }
+
+        /* Three-column comparison */
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1.1fr;
+            gap: 14px;
+            margin-bottom: 22px;
+        }
+
+        .col {
+            background: white;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 2px 14px rgba(0,0,0,0.06);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .col.combined {
+            box-shadow: 0 4px 28px rgba(102,117,255,0.2);
+        }
+
+        .col-head {
+            padding: 16px 18px 14px;
+            text-align: center;
+        }
+
+        .col.si-col       .col-head { background: linear-gradient(135deg, #eef0ff 0%, #e5e0ff 100%); }
+        .col.gorgias-col  .col-head { background: linear-gradient(135deg, #dff7fc 0%, #ccf1f8 100%); }
+        .col.combined     .col-head { background: var(--si-gradient); }
+
+        .col-name {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.9px;
+        }
+
+        .col.si-col      .col-name { color: var(--si-blue); }
+        .col.gorgias-col .col-name { color: var(--gorgias-dark); }
+        .col.combined    .col-name { color: white; }
+
+        .col-desc {
+            font-size: 10px;
+            margin-top: 3px;
+            line-height: 1.4;
+        }
+
+        .col.si-col      .col-desc { color: #888; }
+        .col.gorgias-col .col-desc { color: #888; }
+        .col.combined    .col-desc { color: rgba(255,255,255,0.7); }
+
+        .lift-tag {
+            display: inline-block;
+            background: white;
+            color: var(--si-blue);
+            font-size: 11px;
+            font-weight: 800;
+            padding: 3px 10px;
+            border-radius: 20px;
+            margin-top: 7px;
+        }
+
+        .col-body {
+            padding: 14px 18px;
+            flex: 1;
+        }
+
+        .mrow {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding: 7px 0;
+            border-bottom: 1px solid #f0f2ff;
+        }
+
+        .mrow:last-child { border-bottom: none; }
+
+        .mrow-name {
+            font-size: 11px;
+            color: #666;
+        }
+
+        .mrow-val {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--si-dark);
+        }
+
+        .mrow-na { color: #ccc; font-weight: 400; font-style: italic; }
+
+        .col-foot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 18px;
+        }
+
+        .col.si-col       .col-foot { background: var(--si-blue); }
+        .col.gorgias-col  .col-foot { background: var(--gorgias); }
+        .col.combined     .col-foot { background: var(--si-dark); }
+
+        .foot-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: rgba(255,255,255,0.65);
+        }
+
+        .foot-val {
+            font-size: 20px;
+            font-weight: 800;
+            color: white;
+        }
+
+        .col.combined .foot-val { font-size: 24px; }
+
+        .foot-sub {
+            font-size: 10px;
+            color: rgba(255,255,255,0.5);
+            margin-top: 1px;
+        }
+
+        /* ── Hero stats ── */
+        .hero {
+            background: var(--si-dark);
+            border-radius: 16px;
+            padding: 30px 36px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .hero-stat + .hero-stat {
+            border-left: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .hero-num {
+            font-size: 38px;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .hero-stat:nth-child(1) .hero-num { color: var(--si-blue); }
+        .hero-stat:nth-child(2) .hero-num { color: var(--gorgias); }
+        .hero-stat:nth-child(3) .hero-num { color: #a8b3ff; }
+
+        .hero-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.6);
+            margin-top: 8px;
+        }
+
+        .hero-sub {
+            font-size: 10px;
+            color: rgba(255,255,255,0.3);
+            margin-top: 3px;
+        }
+
+        /* ── Copy block ── */
+        .copy-card {
+            background: white;
+            border-radius: 14px;
+            padding: 22px 26px;
+            margin-bottom: 32px;
+            box-shadow: 0 2px 12px rgba(102,117,255,0.07);
+        }
+
+        .copy-card-title {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.9px;
+            color: var(--muted);
+            margin-bottom: 12px;
+        }
+
+        .copy-preview {
+            font-size: 14px;
+            line-height: 1.85;
+            color: #333;
+            background: #f7f8ff;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px 16px;
+            margin-bottom: 14px;
+            font-family: Georgia, 'Times New Roman', serif;
+        }
+
+        .copy-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 10px 20px;
+            background: var(--si-blue);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .copy-btn:hover     { background: #5565ee; }
+        .copy-btn.copied    { background: #1a9c50; }
+
+        /* ── Methodology ── */
+        .meth-wrap {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 0 20px 48px;
+        }
+
+        .meth-card {
+            background: white;
+            border-radius: 14px;
+            padding: 24px 28px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .meth-title {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.9px;
+            color: var(--si-blue);
+            margin-bottom: 16px;
+        }
+
+        .meth-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+        }
+
+        .meth-list li {
+            font-size: 11.5px;
+            color: #555;
+            line-height: 1.65;
+            padding-left: 14px;
+            position: relative;
+        }
+
+        .meth-list li::before {
+            content: '·';
+            position: absolute;
+            left: 2px;
+            color: var(--si-blue);
+            font-size: 16px;
+            line-height: 1.3;
+        }
+
+        .meth-list a {
+            color: var(--si-blue);
+            text-decoration: none;
+        }
+
+        .meth-list a:hover { text-decoration: underline; }
+
+        .tag-assume {
+            display: inline-block;
+            background: #fff5e0;
+            color: #b07000;
+            font-size: 9.5px;
+            font-weight: 700;
+            padding: 1px 5px;
+            border-radius: 3px;
+            margin-left: 2px;
+            vertical-align: middle;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 700px) {
+            .inputs-grid  { grid-template-columns: 1fr; }
+            .comparison   { grid-template-columns: 1fr; }
+            .hero         { grid-template-columns: 1fr; }
+            .hero-stat + .hero-stat { border-left: none; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px; }
+            .header h1    { font-size: 22px; }
+            .header       { padding: 26px 20px; }
+            .card         { padding: 20px 18px; }
+            .col.combined { order: -1; }
+        }
+
+        @media print {
+            body { background: white; }
+            .calc-btn, .copy-btn { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ══ HEADER ══════════════════════════════════════════════════════════ -->
+<header class="header">
+    <div class="brand-row">
+        <span class="brand-pill brand-si">ShipInsure</span>
+        <span class="brand-x">×</span>
+        <span class="brand-pill brand-gor">Gorgias</span>
+    </div>
+    <h1>Combined ROI Calculator</h1>
+    <p class="header-sub">ShipInsure deflects shipping tickets <em>before</em> they reach Gorgias — the savings compound, not just stack.</p>
+</header>
+
+<!-- ══ INPUTS ══════════════════════════════════════════════════════════ -->
+<div class="wrap">
+<div class="card">
+    <div class="card-title">Your Business Inputs</div>
+    <div class="inputs-grid">
+
+        <!-- Section: Volume -->
+        <div class="span-2 section-head">Order Volume &amp; Ticket Mix</div>
+
+        <div class="field">
+            <label class="field-label">
+                Monthly Orders
+                <i class="tip" data-tip="Total orders shipped per month. Drives shipping incident count, premium revenue, and CS ticket baseline.">i</i>
+            </label>
+            <div class="input-wrap">
+                <input type="number" id="orders" value="5000" min="0" oninput="syncTickets(); autoCalc()">
+            </div>
+        </div>
+
+        <div class="field">
+            <label class="field-label">
+                Average Order Value (AOV)
+                <i class="tip" data-tip="Average revenue per order. Used for reship cost savings and premium revenue. Default $85 = typical mid-market DTC brand. [assumption]">i</i>
+            </label>
+            <div class="input-wrap">
+                <span class="adorn adorn-left">$</span>
+                <input type="number" id="aov" value="85" min="0" oninput="autoCalc()">
+            </div>
+        </div>
+
+        <div class="field">
+            <label class="field-label">
+                Shipping Incident Rate
+                <i class="tip" data-tip="% of orders that result in a shipping issue (lost, damaged, stolen, delayed). Default 2% = industry average for small parcel. [assumption]">i</i>
+            </label>
+            <div class="input-wrap">
+                <input type="number" id="shippingRate" value="2" min="0" max="100" step="0.1" oninput="autoCalc()">
+                <span class="adorn adorn-right">% of orders</span>
+            </div>
+        </div>
+
+        <div class="field">
+            <label class="field-label">
+                Total Monthly CS Tickets
+                <i class="tip" data-tip="All inbound support tickets per month. Auto-set to Orders × 10% — a standard eCommerce benchmark. Override with your actual volume. [assumption: 10% ratio]">i</i>
+            </label>
+            <div class="input-wrap">
+                <input type="number" id="totalTickets" value="500" min="0" oninput="autoCalc()">
+            </div>
+        </div>
+
+        <div class="field">
+            <label class="field-label">
+                Shipping Tickets (% of CS total)
+                <i class="tip" data-tip="Share of CS tickets that are shipping-related (WISMO, lost, damaged, delivery disputes). Used for context. ShipInsure deflects 62% of this volume before tickets are opened. Default 25%. [assumption]">i</i>
+            </label>
+            <div class="input-wrap">
+                <input type="number" id="shippingTicketPct" value="25" min="0" max="100" oninput="autoCalc()">
+                <span class="adorn adorn-right">%</span>
+            </div>
+        </div>
+
+        <!-- Section: Labor -->
+        <hr class="section-rule span-2">
+        <div class="span-2 section-head">CS Labor Costs</div>
+
+        <div class="field">
+            <label class="field-label">
+                Avg Ticket Handle Time
+                <i class="tip" data-tip="Average minutes an agent spends fully resolving one ticket end-to-end. Default 7 min = typical eCommerce support team. [assumption]">i</i>
+            </label>
+            <div class="input-wrap">
+                <input type="number" id="baseAHT" value="7" min="1" max="120" step="0.5" oninput="autoCalc()">
+                <span class="adorn adorn-right">min / ticket</span>
+            </div>
+        </div>
+
+        <div class="field">
+            <label class="field-label">
+                Agent Fully-Loaded Cost
+                <i class="tip" data-tip="Hourly cost per agent including salary, benefits, management overhead, and tooling. ~$18–20 base + 25–30% overhead = $25. [assumption]">i</i>
+            </label>
+            <div class="input-wrap">
+                <span class="adorn adorn-left">$</span>
+                <input type="number" id="agentRate" value="25" min="0" step="1" oninput="autoCalc()">
+                <span class="adorn adorn-right">/ hr</span>
+            </div>
+        </div>
+
+        <!-- Section: ShipInsure -->
+        <hr class="section-rule span-2">
+        <div class="span-2 section-head">ShipInsure Parameters</div>
+
+        <div class="field">
+            <label class="field-label">
+                SI Attach Rate
+                <i class="tip" data-tip="% of orders where the customer selects ShipInsure protection. With auto-opt-in at checkout, ShipInsure merchants typically see 50–70%. Default 60%.">i</i>
+            </label>
+            <div class="input-wrap">
+                <input type="number" id="attachRate" value="60" min="0" max="100" oninput="autoCalc()">
+                <span class="adorn adorn-right">%</span>
+            </div>
+        </div>
+
+        <div class="field">
+            <label class="field-label">
+                SI Premium % of Cart
+                <i class="tip" data-tip="Customer-facing protection fee as a % of cart value. ShipInsure typical range: 2.5–3%. Default 2.75%.">i</i>
+            </label>
+            <div class="input-wrap">
+                <input type="number" id="premiumPct" value="2.75" min="0" max="10" step="0.05" oninput="autoCalc()">
+                <span class="adorn adorn-right">%</span>
+            </div>
+        </div>
+
+        <div class="field">
+            <label class="field-label">
+                SI Rev Share to Merchant
+                <i class="tip" data-tip="% of net premium revenue (after SI-funded claims and returns) paid back to the merchant monthly, starting 3 months after launch. ShipInsure range: 50–75%. Default 65%.">i</i>
+            </label>
+            <div class="input-wrap">
+                <input type="number" id="revShare" value="65" min="0" max="100" oninput="autoCalc()">
+                <span class="adorn adorn-right">% net rev</span>
+            </div>
+        </div>
+
+        <!-- Section: Gorgias -->
+        <hr class="section-rule span-2">
+        <div class="span-2 section-head">Gorgias Parameters</div>
+
+        <div class="field">
+            <label class="field-label">
+                Gorgias Automation Rate
+                <i class="tip" data-tip="% of tickets fully resolved by Gorgias Automate/AI without human intervention. Gorgias publishes 30% as 'a good benchmark'; median across platform is 45%; top quartile reaches 65%+. Default 30% (conservative). Source: docs.gorgias.com">i</i>
+            </label>
+            <div class="input-wrap">
+                <input type="number" id="gorgiasRate" value="30" min="0" max="100" oninput="autoCalc()">
+                <span class="adorn adorn-right">% auto-resolved</span>
+            </div>
+        </div>
+
+        <div class="field">
+            <label class="field-label">
+                Gorgias AHT Reduction
+                <i class="tip" data-tip="% reduction in handle time for tickets still handled by agents (via macros, AI suggestions, smarter routing). Good Eggs: 40% reduction; Shinesty: 50% lower resolution time. Default 35% (conservative). Source: gorgias.com/blog/automation-impact-on-cx-data">i</i>
+            </label>
+            <div class="input-wrap">
+                <input type="number" id="gorgiasAHT" value="35" min="0" max="100" oninput="autoCalc()">
+                <span class="adorn adorn-right">% faster</span>
+            </div>
+        </div>
+
+    </div><!-- /inputs-grid -->
+
+    <button class="calc-btn" onclick="calculate()">Calculate Combined ROI →</button>
+</div><!-- /card -->
+
+
+<!-- ══ RESULTS ═══════════════════════════════════════════════════════ -->
+<div id="results">
+
+    <!-- Three-column comparison -->
+    <div class="comparison">
+
+        <!-- ShipInsure Only -->
+        <div class="col si-col">
+            <div class="col-head">
+                <div class="col-name">ShipInsure Only</div>
+                <div class="col-desc">Protection + revenue share</div>
+            </div>
+            <div class="col-body">
+                <div class="mrow"><span class="mrow-name">Shipping tickets deflected</span><span class="mrow-val" id="si-deflected">—</span></div>
+                <div class="mrow"><span class="mrow-name">CS labor saved</span><span class="mrow-val" id="si-labor">—</span></div>
+                <div class="mrow"><span class="mrow-name">Net premium rev share</span><span class="mrow-val" id="si-premium">—</span></div>
+                <div class="mrow"><span class="mrow-name">Reship costs covered by SI</span><span class="mrow-val" id="si-reship">—</span></div>
+                <div class="mrow"><span class="mrow-name">Agent hours freed</span><span class="mrow-val" id="si-hours">—</span></div>
+            </div>
+            <div class="col-foot">
+                <div>
+                    <div class="foot-label">Monthly Value</div>
+                    <div class="foot-sub" id="si-annual-sub">—/yr</div>
+                </div>
+                <div class="foot-val" id="si-total">—</div>
+            </div>
+        </div>
+
+        <!-- Gorgias Only -->
+        <div class="col gorgias-col">
+            <div class="col-head">
+                <div class="col-name">Gorgias Only</div>
+                <div class="col-desc">Automation on full ticket volume</div>
+            </div>
+            <div class="col-body">
+                <div class="mrow"><span class="mrow-name">Tickets auto-resolved</span><span class="mrow-val" id="gorgias-deflected">—</span></div>
+                <div class="mrow"><span class="mrow-name">Labor saved (deflection)</span><span class="mrow-val" id="gorgias-labor-d">—</span></div>
+                <div class="mrow"><span class="mrow-name">Labor saved (faster AHT)</span><span class="mrow-val" id="gorgias-labor-a">—</span></div>
+                <div class="mrow"><span class="mrow-name">Net premium rev share</span><span class="mrow-val mrow-na">n/a</span></div>
+                <div class="mrow"><span class="mrow-name">Agent hours freed</span><span class="mrow-val" id="gorgias-hours">—</span></div>
+            </div>
+            <div class="col-foot">
+                <div>
+                    <div class="foot-label">Monthly Value</div>
+                    <div class="foot-sub" id="gorgias-annual-sub">—/yr</div>
+                </div>
+                <div class="foot-val" id="gorgias-total">—</div>
+            </div>
+        </div>
+
+        <!-- Combined -->
+        <div class="col combined">
+            <div class="col-head">
+                <div class="col-name">ShipInsure + Gorgias</div>
+                <div class="col-desc">SI deflects first · Gorgias handles the rest</div>
+                <div class="lift-tag" id="lift-tag">+XX% vs. best single tool</div>
+            </div>
+            <div class="col-body">
+                <div class="mrow"><span class="mrow-name">Total tickets deflected</span><span class="mrow-val" id="c-deflected">—</span></div>
+                <div class="mrow"><span class="mrow-name">CS labor saved (all sources)</span><span class="mrow-val" id="c-labor">—</span></div>
+                <div class="mrow"><span class="mrow-name">Net premium rev share</span><span class="mrow-val" id="c-premium">—</span></div>
+                <div class="mrow"><span class="mrow-name">Reship costs covered by SI</span><span class="mrow-val" id="c-reship">—</span></div>
+                <div class="mrow"><span class="mrow-name">Agent hours freed</span><span class="mrow-val" id="c-hours">—</span></div>
+            </div>
+            <div class="col-foot">
+                <div>
+                    <div class="foot-label">Monthly Value</div>
+                    <div class="foot-sub" id="c-annual-sub">—/yr</div>
+                </div>
+                <div class="foot-val" id="c-total">—</div>
+            </div>
+        </div>
+
+    </div><!-- /comparison -->
+
+    <!-- Hero stats -->
+    <div class="hero">
+        <div class="hero-stat">
+            <div class="hero-num" id="hero-saved">$0</div>
+            <div class="hero-label">Saved per month</div>
+            <div class="hero-sub">ShipInsure + Gorgias combined</div>
+        </div>
+        <div class="hero-stat">
+            <div class="hero-num" id="hero-hours">0</div>
+            <div class="hero-label">Agent hours back / month</div>
+            <div class="hero-sub">Labor value freed for growth work</div>
+        </div>
+        <div class="hero-stat">
+            <div class="hero-num" id="hero-tickets">0</div>
+            <div class="hero-label">Tickets deflected / month</div>
+            <div class="hero-sub">Never reach a human agent</div>
+        </div>
+    </div>
+
+    <!-- Email-ready copy block -->
+    <div class="copy-card">
+        <div class="copy-card-title">📋 Drop into your next cold email</div>
+        <div class="copy-preview" id="copy-preview">Calculating…</div>
+        <button class="copy-btn" id="copy-btn" onclick="copyStats()">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="4" y="4" width="9" height="9" rx="1.5" stroke="white" stroke-width="1.4"/><path d="M2 10V2h8" stroke="white" stroke-width="1.4" stroke-linecap="round"/></svg>
+            Copy to Clipboard
+        </button>
+    </div>
+
+</div><!-- /results -->
+</div><!-- /wrap -->
+
+<!-- ══ METHODOLOGY ══════════════════════════════════════════════════ -->
+<div class="meth-wrap">
+<div class="meth-card">
+    <div class="meth-title">Methodology &amp; Sources</div>
+    <ul class="meth-list">
+        <li><strong>ShipInsure 62% shipping-ticket deflection:</strong> Merchants using ShipInsure's 20-second self-service claims portal (98–99% approval rate, 1–2 day resolution) report approximately 62% reduction in shipping-related CS contacts. Source: ShipInsure internal merchant data.</li>
+        <li><strong>Gorgias automation rate — default 30%:</strong> Gorgias documentation states: <em>"A good benchmark is a 30% automation rate."</em> The platform-wide median AI Resolution Rate (Oct 2025–Apr 2026 data window) is 45%; top-quartile brands reach 65%. We use 30% as the conservative default for new adopters. Sources: <a href="https://docs.gorgias.com/en-US/my-automate-403846" target="_blank">docs.gorgias.com/my-automate</a> · <a href="https://www.gorgias.com/research/the-cheapest-ticket-is-the-one-a-human-never-touches" target="_blank">gorgias.com/research</a></li>
+        <li><strong>Gorgias AHT reduction — default 35%:</strong> Published case studies show Good Eggs achieved 40% handle-time reduction and Shinesty saw 50% lower resolution time using Gorgias automation features. We apply 35% as a conservative default for agent-handled tickets. Source: <a href="https://www.gorgias.com/blog/automation-impact-on-cx-data" target="_blank">gorgias.com/blog/automation-impact-on-cx-data</a></li>
+        <li><strong>Gorgias additional published outcomes:</strong> 37% reduction in first response time · 52% reduction in resolution time · 27% decrease in ticket-to-order ratio. Source: <a href="https://www.gorgias.com/blog/automation-impact-on-cx-data" target="_blank">gorgias.com/blog/automation-impact-on-cx-data</a></li>
+        <li><strong>Shipping incident rate — default 2%:</strong> Industry average for small parcel carriers (lost, damaged, stolen, significantly delayed). <span class="tag-assume">[assumption]</span></li>
+        <li><strong>Ticket-to-order ratio — default 10%:</strong> Standard eCommerce CS benchmark; typical observed range 8–12%. <span class="tag-assume">[assumption]</span></li>
+        <li><strong>Shipping-related share of tickets — default 25%:</strong> Approximate share of total CS tickets that are shipping-related (WISMO, lost, damaged, disputes). <span class="tag-assume">[assumption]</span></li>
+        <li><strong>Average ticket handle time — default 7 min:</strong> Typical end-to-end agent handle time for eCommerce helpdesk tickets across email and chat channels. <span class="tag-assume">[assumption]</span></li>
+        <li><strong>Agent fully-loaded cost — default $25/hr:</strong> ~$18–20/hr base wage + ~25–30% benefits, management overhead, and tooling for US-based support. <span class="tag-assume">[assumption]</span></li>
+        <li><strong>SI attach rate — default 60%:</strong> ShipInsure merchants using auto-opt-in at checkout typically achieve 50–70% attach rates. Source: ShipInsure platform data.</li>
+        <li><strong>SI premium — default 2.75%:</strong> Customer-facing protection fee. Typical ShipInsure range: 2.5–3% of cart. Source: ShipInsure.</li>
+        <li><strong>SI rev share — default 65%:</strong> Net rev share range is 50–75%; 65% is mid-range for a standard merchant profile. Source: ShipInsure.</li>
+        <li><strong>Reship cost savings:</strong> ShipInsure covers reships at full MSRP/AOV. The merchant absorbs zero cost-of-goods or re-shipping cost for SI-covered incidents. Calculated as: shipping incidents × AOV.</li>
+        <li><strong>Synergy logic (no double-counting):</strong> ShipInsure deflects 62% of shipping tickets <em>before they are opened</em>. Gorgias automation then runs on the reduced remaining volume — not the original total. A ticket cannot be deflected by both tools simultaneously. The combined value therefore reflects a genuine compounding effect: SI shrinks the queue, Gorgias optimizes what's left.</li>
+    </ul>
+</div>
+</div><!-- /meth-wrap -->
+
+<script>
+    // ── Sync total tickets with orders field ──────────────────────────
+    function syncTickets() {
+        const o = parseFloat(document.getElementById('orders').value) || 0;
+        document.getElementById('totalTickets').value = Math.round(o * 0.10);
+    }
+
+    // ── Auto-recalc on any input change (debounced) ───────────────────
+    let _debounce;
+    function autoCalc() {
+        clearTimeout(_debounce);
+        _debounce = setTimeout(() => {
+            if (document.getElementById('results').style.display !== 'none') calculate();
+        }, 280);
+    }
+
+    // ── Formatters ────────────────────────────────────────────────────
+    function f$(n)  { return '$' + Math.round(n).toLocaleString('en-US'); }
+    function fN(n, d=0) { return n.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d }); }
+    function fH(n)  { return fN(n, 1) + ' hrs'; }
+
+    // ── Main calculation ──────────────────────────────────────────────
+    function calculate() {
+        const orders      = parseFloat(document.getElementById('orders').value)          || 0;
+        const aov         = parseFloat(document.getElementById('aov').value)             || 0;
+        const shipRate    = (parseFloat(document.getElementById('shippingRate').value)   || 0) / 100;
+        const totTickets  = parseFloat(document.getElementById('totalTickets').value)    || 0;
+        const baseAHT     = parseFloat(document.getElementById('baseAHT').value)         || 0; // minutes
+        const agentRate   = parseFloat(document.getElementById('agentRate').value)       || 0; // $/hr
+        const attach      = (parseFloat(document.getElementById('attachRate').value)     || 0) / 100;
+        const premPct     = (parseFloat(document.getElementById('premiumPct').value)     || 0) / 100;
+        const revShr      = (parseFloat(document.getElementById('revShare').value)       || 0) / 100;
+        const gRate       = (parseFloat(document.getElementById('gorgiasRate').value)    || 0) / 100;
+        const gAHT        = (parseFloat(document.getElementById('gorgiasAHT').value)     || 0) / 100;
+
+        // ── Formula 1–6 (from spec) ───────────────────────────────────
+        const shipTickets       = orders * shipRate;                                 // F1
+        const siDeflected       = shipTickets * 0.62;                                // F2
+        const afterSI           = Math.max(0, totTickets - siDeflected);             // F3
+        const gDeflectedCombined = afterSI * gRate;                                  // F4
+        const gDeflectedAlone   = totTickets * gRate;                                // F5
+        const agentHandledC     = afterSI - gDeflectedCombined;                      // F6
+        const effectiveAHT      = baseAHT * (1 - gAHT);                             // F7
+
+        // ── ShipInsure-only column ────────────────────────────────────
+        // Deflected: siDeflected tickets @ base AHT each; remaining: no AHT reduction
+        const siLaborHrs  = (siDeflected * baseAHT) / 60;                           // F8 (SI only)
+        const siLaborSaved = siLaborHrs * agentRate;
+        const siPremRev   = orders * attach * aov * premPct * revShr;               // F10
+        const siReshipSvd = shipTickets * aov;                                       // F11
+        const siTotal     = siLaborSaved + siPremRev + siReshipSvd;                 // F12
+
+        // ── Gorgias-only column ───────────────────────────────────────
+        const gAgentHandled   = totTickets - gDeflectedAlone;
+        const gLaborHrsD      = (gDeflectedAlone * baseAHT) / 60;
+        const gLaborHrsA      = (gAgentHandled * (baseAHT - effectiveAHT)) / 60;
+        const gLaborHrs       = gLaborHrsD + gLaborHrsA;                            // F8 (Gorgias only)
+        const gLaborSavedD    = gLaborHrsD * agentRate;
+        const gLaborSavedA    = gLaborHrsA * agentRate;
+        const gLaborSaved     = gLaborHrs * agentRate;
+        const gTotal          = gLaborSaved;                                         // no SI revenue
+
+        // ── Combined column ───────────────────────────────────────────
+        const cDeflected   = siDeflected + gDeflectedCombined;
+        const cLaborHrs    = (cDeflected * baseAHT + agentHandledC * (baseAHT - effectiveAHT)) / 60; // F8 (combined)
+        const cLaborSaved  = cLaborHrs * agentRate;
+        const cTotal       = cLaborSaved + siPremRev + siReshipSvd;                 // F12 (combined)
+
+        // ── Lift (F13) ────────────────────────────────────────────────
+        const maxSingle = Math.max(siTotal, gTotal);
+        const lift      = maxSingle > 0 ? (cTotal - maxSingle) / maxSingle * 100 : 0;
+
+        // ── Annualised figures ────────────────────────────────────────
+        const siAnn  = siTotal  * 12;
+        const gAnn   = gTotal   * 12;
+        const cAnn   = cTotal   * 12;
+
+        // ── Populate SI column ────────────────────────────────────────
+        document.getElementById('si-deflected').textContent = fN(siDeflected) + ' tickets';
+        document.getElementById('si-labor').textContent     = f$(siLaborSaved);
+        document.getElementById('si-premium').textContent   = f$(siPremRev);
+        document.getElementById('si-reship').textContent    = f$(siReshipSvd);
+        document.getElementById('si-hours').textContent     = fH(siLaborHrs);
+        document.getElementById('si-total').textContent     = f$(siTotal);
+        document.getElementById('si-annual-sub').textContent = f$(siAnn) + '/yr';
+
+        // ── Populate Gorgias column ───────────────────────────────────
+        document.getElementById('gorgias-deflected').textContent = fN(gDeflectedAlone) + ' tickets';
+        document.getElementById('gorgias-labor-d').textContent   = f$(gLaborSavedD);
+        document.getElementById('gorgias-labor-a').textContent   = f$(gLaborSavedA);
+        document.getElementById('gorgias-hours').textContent     = fH(gLaborHrs);
+        document.getElementById('gorgias-total').textContent     = f$(gTotal);
+        document.getElementById('gorgias-annual-sub').textContent = f$(gAnn) + '/yr';
+
+        // ── Populate Combined column ──────────────────────────────────
+        document.getElementById('c-deflected').textContent  = fN(cDeflected) + ' tickets';
+        document.getElementById('c-labor').textContent      = f$(cLaborSaved);
+        document.getElementById('c-premium').textContent    = f$(siPremRev);
+        document.getElementById('c-reship').textContent     = f$(siReshipSvd);
+        document.getElementById('c-hours').textContent      = fH(cLaborHrs);
+        document.getElementById('c-total').textContent      = f$(cTotal);
+        document.getElementById('c-annual-sub').textContent = f$(cAnn) + '/yr';
+        document.getElementById('lift-tag').textContent     = '+' + fN(lift, 0) + '% vs. best single tool';
+
+        // ── Hero stats ────────────────────────────────────────────────
+        document.getElementById('hero-saved').textContent   = f$(cTotal);
+        document.getElementById('hero-hours').textContent   = fN(cLaborHrs, 0);
+        document.getElementById('hero-tickets').textContent = fN(cDeflected, 0);
+
+        // ── Email copy text ───────────────────────────────────────────
+        const pctFewer = totTickets > 0 ? fN(cDeflected / totTickets * 100, 0) : '0';
+        const copyText =
+            f$(cTotal)   + ' saved/month  •  ' +
+            fN(cLaborHrs, 0) + ' hours back to your team  •  ' +
+            pctFewer     + '% fewer tickets reaching an agent  •  ' +
+            f$(cAnn)     + '/yr combined ROI';
+        document.getElementById('copy-preview').textContent = copyText;
+
+        // ── Show results ──────────────────────────────────────────────
+        const resultEl = document.getElementById('results');
+        if (resultEl.style.display === 'none') {
+            resultEl.style.display = 'block';
+            resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+
+    // ── Copy to clipboard ─────────────────────────────────────────────
+    function copyStats() {
+        const text = document.getElementById('copy-preview').textContent;
+        const btn  = document.getElementById('copy-btn');
+
+        const doSuccess = () => {
+            btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7l4 4 6-6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Copied!';
+            btn.classList.add('copied');
+            setTimeout(() => {
+                btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="4" y="4" width="9" height="9" rx="1.5" stroke="white" stroke-width="1.4"/><path d="M2 10V2h8" stroke="white" stroke-width="1.4" stroke-linecap="round"/></svg> Copy to Clipboard';
+                btn.classList.remove('copied');
+            }, 2500);
+        };
+
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(text).then(doSuccess).catch(() => fallbackCopy(text, doSuccess));
+        } else {
+            fallbackCopy(text, doSuccess);
+        }
+    }
+
+    function fallbackCopy(text, cb) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+        document.body.appendChild(ta);
+        ta.focus(); ta.select();
+        try { document.execCommand('copy'); cb(); } catch(e) {}
+        document.body.removeChild(ta);
+    }
+
+    // ── Run on load with defaults ─────────────────────────────────────
+    window.addEventListener('load', calculate);
+</script>
+</body>
+</html>
