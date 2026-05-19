@@ -970,8 +970,9 @@
 
         // ── Show results ──────────────────────────────────────────────
         const resultEl = document.getElementById('results');
-        if (resultEl.style.display === 'none') {
-            resultEl.style.display = 'block';
+        const wasHidden = getComputedStyle(resultEl).display === 'none';
+        resultEl.style.display = 'block';
+        if (wasHidden) {
             resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     }
